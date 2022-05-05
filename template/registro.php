@@ -45,7 +45,7 @@ include '../template/conexion.php';
                         <td><input type="text" name="altfin" id="altfin" placeholder="Altitud" required></td>
                     </tr>
                     <tr>
-                        <td>Fotografia de Referencia <br> <input type="file" name="files[]"  required></td>
+                        <td>Fotografia de Referencia <br> <input type="file" name="finca[]"  required></td>
                     </tr>
                 </table>
             </fieldset>
@@ -63,7 +63,7 @@ include '../template/conexion.php';
                     </tr>
                 </table>
             </fieldset>
-            <!--<fieldset>
+            <fieldset>
             <legend>Informacion del proceso</legend>
              <table>
                     <tr>
@@ -85,93 +85,91 @@ include '../template/conexion.php';
                         <td><input type="text" name="cuepro" id="cuevar"  placeholder="Cuerpo" required></td>
                     </tr>
                 </table>
-            </fieldset> -->
+            </fieldset>
             <input type="submit" name="botonReg" value="Registrar">
    </form>
 </body>
 </html>
 <?php
 if (isset($_POST['botonReg'])){
-     $nomUsu = $_POST['nomusu'];
+    $nomUsu = $_POST['nomusu'];
     $cedUsu = $_POST['cedusu'];
     $dirUsu = $_POST['dirusu'];
     $telUsu = $_POST['telusu'];
     $nomFin = $_POST['nomfin'];
     $ubiFin = $_POST['ubifin'];
     $altFin = $_POST['altfin'];
-    $fileFin =count($_FILES['files']['name']); 
+    $fileFin = count($_FILES['finca']['name']);
     $nomVar = $_POST['nomvar'];
     $fileVar =count($_FILES['files']['name']);
     $desVar = $_POST['desVar'];
-      /*$nomProce = $_POST['nompro'];
+    $nomProce = $_POST['nompro'];
     $tiPro = $_POST['tipro'];
     $fraPro = $_POST['frapro'];
     $sabPro = $_POST['sabpro'];
     $aciPro = $_POST['acipro'];
     $cuePro = $_POST['cuepro'];
-    
-    $idvar = 1;*/ 
- $idUsu = 1;
- $idFin = 1;
-   try {
-         $sql1 = "INSERT INTO `usuario`(`id_usuario`, `nombre_usuario`, `cedula_usuario`, `direccion_usuario`, `telefono_usuario`) VALUES ('', :nom, :ced, :dir, :tel)";
-         $resultado1 =$cadena->prepare($sql1);
-         $resultado1 -> execute(array(":nom"=>$nomUsu, ":ced"=>$cedUsu, ":dir"=>$dirUsu, ":tel"=>$telUsu));
-        
-        } catch (Exception $error) {
-            die('Error en el registro de datos '. $error->getMessage());
-         }
+            
+           try {
+                $sql1 = "INSERT INTO `usuario`(`id_usuario`, `nombre_usuario`, `cedula_usuario`, `direccion_usuario`, `telefono_usuario`) VALUES ('', :nom, :ced, :dir, :tel)";
+                $resultado1 =$cadena->prepare($sql1);
+                $resultado1 -> execute(array(":nom"=>$nomUsu, ":ced"=>$cedUsu, ":dir"=>$dirUsu, ":tel"=>$telUsu));
+                
+                } catch (Exception $error) {
+                    die('Error en el registro de datos 1 '. $error->getMessage());
+                }
 
            try {
-            $sql2 = "INSERT INTO `finca`(`id_finca`, `nombre_finca`, `ubicacion_finca`, `altitud_finca`, `foto_finca`, `ruta_finca`, `id_usuario`) VALUES (NULL, ?, ?, ?, ?, ?, ?)";
+            $sql2 = "INSERT INTO `finca`(`id_finca`, `nombre_finca`, `ubicacion_finca`, `altitud_finca`, `foto_finca`, `ruta_finca`, `id_usua`) VALUES (NULL, ?, ?, ?, ?, ?, ?)";
             $resultado2 =$cadena->prepare($sql2);
+            $idUsuario= $cadena->lastInsertId();
             for ($i=0; $i < $fileFin; $i++) { 
-               $filename = $_FILES['files']['name'][$i];
+               $filename = $_FILES['finca']['name'][$i];
                $carpeta = 'fotografiaFinca/'.$filename;
                $file_extension = pathinfo($carpeta, PATHINFO_EXTENSION);
                $file_extension = strtolower($file_extension);
                $valid_extension = array("png", "jpeg", "jpg");
                if (in_array($file_extension, $valid_extension)) {
-                   if (move_uploaded_file($_FILES['files']['tmp_name'][$i],$carpeta)) {
-                    $resultado2 ->execute(array($nomFin, $ubiFin, $altFin, $filename, $carpeta, $idUsu)); 
+                   if (move_uploaded_file($_FILES['finca']['tmp_name'][$i],$carpeta)) {
+                    $resultado2 ->execute(array($nomFin, $ubiFin, $altFin, $filename, $carpeta, $idUsuario)); 
                    }
                }
             }
          } catch (Exception $error) {
-            die('Error en el registro de datos '. $error->getMessage());
+            die('Error en el registro de datos 2 '. $error->getMessage());
          }
 
-       try {
-        $sql3 = "INSERT INTO `variedad`(`id_variedad`, `nombre_variedad`, `foto_variedad`, `ruta_variedad`, `descripcion_variedad`, `id_finca`) VALUES(NULL, ?, ?, ?, ?, ?)";
-        $resultado3 =$cadena->prepare($sql3);
-            for ($x=0; $i < $fileVar; $x++) { 
-            $filename2 = $_FILES['files']['name'][$i];
-            $carpeta2 = 'fotografiaVariedad/'.$filename2;
-            $file_extension2 = pathinfo($carpeta2, PATHINFO_EXTENSION);
-            $file_extension2 = strtolower($file_extension2);
-            $valid_extension2 = array("png", "jpeg", "jpg");
-            if (in_array($file_extension2, $valid_extension2)) {
-                if (move_uploaded_file($_FILES['files']['tmp_name'][$x],$carpeta2)) {
-                    $resultado3 ->execute(array($nomVar, $filename2, $carpeta2, $desVar, $idFin)); 
-                    
+            try {
+                $sql3 = "INSERT INTO `variedad` (`id_variedad`, `nombre_variedad`, `foto_variedad`, `ruta_variedad`, `descripcion_variedad`, `id_fin`) VALUES(NULL, ?, ?, ?, ?, ?)";
+                $resultado3 =$cadena->prepare($sql3);
+                $idFinca= $cadena->lastInsertId();
+                    for ($x=0; $x < $fileVar; $x++) { 
+                    $filename2 = $_FILES['files']['name'][$x];
+                    $carpeta2 = 'fotografiaVariedad/'.$filename2;
+                    $file_extension2 = pathinfo($carpeta2, PATHINFO_EXTENSION);
+                    $file_extension2 = strtolower($file_extension2);
+                    $valid_extension2 = array("png", "jpeg", "jpg");
+                    if (in_array($file_extension2, $valid_extension2)) {
+                        if (move_uploaded_file($_FILES['files']['tmp_name'][$x],$carpeta2)) {
+                            $resultado3 ->execute(array($nomVar, $filename2, $carpeta2, $desVar, $idFinca)); 
+                            
+                        }
                 }
-           }
-        }
-       } catch (Exception $error) {
-        die('Error en el registro de datos '. $error->getMessage());
-       }
+                }
+            } catch (Exception $error) {
+                die('Error en el registro de datos 3 '. $error->getMessage());
+            }
 
-           
-
-         /*$sql4 = "INSERT INTO `proceso`(`id_proceso`, `nombre_proceso`, `tipo_fer`, `fragancia_proceso`, `sabor_proceso`, `acidez_proceso`, `cuerpo_proceso`, `id_variedad`) VALUES('', :npro, :tpro, :fpro, :spro, :apro, :cpro; :idva )";
-         $resultado4 = $cadena->prepare($sql4);
-         $resultado4 ->execute(array(":npro"=>$nomProce, ":tpro"=>$tiPro, ":fpro"=>$fraPro, ":spro"=>$sabPro, ":apro"=>$aciPro, ":cpro"=>$cuePro, ":idva"=>$idvar));
-          */
+        try {
+           $sql4 = "INSERT INTO `proceso`(`id_proceso`, `nombre_proceso`, `tipo_fer`, `fragancia_proceso`, `sabor_proceso`, `acidez_proceso`, `cuerpo_proceso`, `id_variedad`) VALUES(NULL, :npro, :tpro, :fpro, :spro, :apro, :cpro , :idva )";
+           $resultado4 = $cadena->prepare($sql4);
+           $idVariedad= $cadena-> lastInsertId();
+           $resultado4 ->execute(array(":npro"=>$nomProce, ":tpro"=>$tiPro, ":fpro"=>$fraPro, ":spro"=>$sabPro, ":apro"=>$aciPro, ":cpro"=>$cuePro , ":idva"=>$idVariedad));
+        }catch (Exception $error) {
+            die('Error en el registro de datos 4 '. $error->getMessage());
+       } 
          ?>
           <script lenguage="javascript">window.alert('Informacion registrada con exito!!!') </script>
          <?php  
-
-    
-
 }
 ?>
